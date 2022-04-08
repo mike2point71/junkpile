@@ -54,6 +54,7 @@ def depsAlways = [
     'org.apache.logging.log4j:log4j-api:2.+',
     'org.apache.logging.log4j:log4j-core:2.+',
     'ch.qos.logback:logback-classic:1.2.+',
+    'com.github.tonivade:purefun:0.+'
   ],
   [
     'testImplementation',
