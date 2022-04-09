@@ -8,15 +8,12 @@
 //  }
 //}
 
-// println('running init.gradle')
+println('running mike.gradle')
 
 //def int mkInitJavaVersion = 17
 
 gradle.settingsEvaluated { settings ->
-  // println('in settingsEvaluated of init.gradle')
-  //mkInitJavaVersion = p.mkprops?.override?.java?.version?:17
-  //println("Here is mkInitJavaVersion: ${mkInitJavaVersion}")
-  // println("extensions: ${settings.extensions}")
+  println('in settingsEvaluated of mike.gradle')
   settings.pluginManagement {
     repositories {
       gradlePluginPortal()
@@ -29,14 +26,13 @@ gradle.settingsEvaluated { settings ->
       id 'com.github.johnrengelman.shadow' version '7.1.2'
       id 'com.github.ben-manes.versions' version '+'
       id 'io.freefair.lombok' version '+'
-      id 'eu.leontebbens.gradle.chromedriver-updater' version '1.6.3'
+      // id 'eu.leontebbens.gradle.chromedriver-updater' version '1.6.3'
       id 'com.github.erdi.webdriver-binaries' version '2.7'
       id 'com.github.erdi.idea-base' version '2.2'
+      id 'edu.sc.seis.launch4j' version '2.5.1'
     }
   }
 }
-
-
 
 def depsAlways = [
   [
@@ -70,7 +66,7 @@ def depsAlways = [
   ]
 ]
 
-  def repoList = [
+def repoList = [
     'repo1.maven.org/maven2/',
     'jitpack.io',
     'repo.maven.apache.org/maven2/',
@@ -81,55 +77,49 @@ def depsAlways = [
     'releases.usethesource.io/maven/',
 ]
 
+def addJvmAndCompilerArgs = [
+    '--enable-preview'
+]
 
 gradle.allprojects{p->
-  // println("Doing allProjects of init.gradle")
+  println('mike.gradle doing allprojects')
   def figureOutJavaVersion = {
-    def tmp = ext.find('override.java.version')
+    String tmp = ext.find('override.java.version')
     if(tmp){
       println("Overriding java version with ${tmp}")
       return tmp
     }
-    return null
+    return '18'
   }
 
   p.repositories{
+    println('mike.gradle setting repositories.')
     mavenCentral()
     google()
     repoList.each {u-> maven{url("https://$u")}}
     mavenLocal()
   }
   p.pluginManager.withPlugin('idea', { iPlug->
+    println('mike.gradle setting idea stuff')
     idea {
         module {
             downloadJavadoc = true
             downloadSources = true
         }
     }
-    // iPlug.configure {
-    //   module{
-    //     downloadJavadoc = true
-    //     downloadSources = true
-    //   }
-    // }
   })
   p.pluginManager.withPlugin('java', {jplug->
-    // println("""p: ${p}""")
-    // println("extensions:  ${extensions}")
-    // println("ext: ${ext}")
-    // println("x props: ${ext.properties}")
-    // println("jv: ${ext.find('ht.mikewrig.jv')}")
-
-
-
-    // def pmkprops
+    println('mike.gradle doing java plugin stuff')
     depsAlways.each{dep->
-    dep.key.each{k->
-      dep.value.each{v->
-        p.dependencies.add(k, v)}}}
-    p.java.toolchain.languageVersion = JavaLanguageVersion.of(figureOutJavaVersion()?:17)
+      dep.key.each{k->
+        dep.value.each{v->
+          p.dependencies.add(k, v)}}}
+    p.java.toolchain.languageVersion = JavaLanguageVersion.of(figureOutJavaVersion())
+    p.tasks.withType<JavaCompile> {
+        options.compilerArgs.addAll(addJvmAndCompilerArgs)
+    }
     p.test.useJUnitPlatform(){
-      excludeTags 'Money'
+      // excludeTags 'ExampleExclude'
     }
     p.test.testLogging.with{tlc->
       tlc.showStandardStreams = true
@@ -144,11 +134,25 @@ gradle.allprojects{p->
       ]
     }
   })
+  p.pluginManager.withPlugin('application', {appplug->
+    println('mike.gradle doing application plugin stuff')
+    p.application.applicationDefaultJvmArgs = [
+        *addJvmAndCompilerArgs
+    ]
+  })
+  p.pluginManager.withPlugin('groovy', {groovyplug->
+    println('mike.gradle doing groovy plugin stuff')
+    p.compileGroovy {
+        options.compilerArgs.addAll(addJvmAndCompilerArgs)
+    }
+  })
 }
 
 
-
-
+/*
+********************************************************************
+Bunch of whacky methods.
+*/
 
 def whatAmI(def name) {
   println("In $name:")
