@@ -67,18 +67,18 @@ def depsAlways = [
 ]
 
 def repoList = [
-    'repo1.maven.org/maven2/',
-    'jitpack.io',
-    'repo.maven.apache.org/maven2/',
-    'oss.sonatype.org/content/repositories/releases/',
-    'packages.atlassian.com/rmvn/maven-atlassian-external/',
-    'repo.hortonworks.com/content/repositories/releases/',
-    // 'repo.spring.io/plugins-release/',
-    'releases.usethesource.io/maven/',
+  'repo1.maven.org/maven2/',
+  'jitpack.io',
+  'repo.maven.apache.org/maven2/',
+  'oss.sonatype.org/content/repositories/releases/',
+  'packages.atlassian.com/rmvn/maven-atlassian-external/',
+  'repo.hortonworks.com/content/repositories/releases/',
+  // 'repo.spring.io/plugins-release/',
+  'releases.usethesource.io/maven/',
 ]
 
 def addJvmAndCompilerArgs = [
-    '--enable-preview'
+  '--enable-preview'
 ]
 
 gradle.allprojects{p->
@@ -115,8 +115,9 @@ gradle.allprojects{p->
         dep.value.each{v->
           p.dependencies.add(k, v)}}}
     p.java.toolchain.languageVersion = JavaLanguageVersion.of(figureOutJavaVersion())
-    p.tasks.withType<JavaCompile> {
-        options.compilerArgs.addAll(addJvmAndCompilerArgs)
+    p.tasks.withType(JavaCompile) {jcTask->
+      println("Adding compiler args for task: ${jcTask}")
+      jcTask.options.compilerArgs.addAll(addJvmAndCompilerArgs)
     }
     p.test.useJUnitPlatform(){
       // excludeTags 'ExampleExclude'
@@ -142,9 +143,11 @@ gradle.allprojects{p->
   })
   p.pluginManager.withPlugin('groovy', {groovyplug->
     println('mike.gradle doing groovy plugin stuff')
-    p.compileGroovy {
-        options.compilerArgs.addAll(addJvmAndCompilerArgs)
-    }
+    p.compileGroovy.options.compilerArgs.addAll(addJvmAndCompilerArgs)
+    // p.compileGroovy { cgHandle->
+    //   println("Here is compileGroovy: ${cgHandle}")
+      
+    // }
   })
 }
 
@@ -161,37 +164,40 @@ def whatAmI(def name) {
   if (getDelegate) println("  delegate: ${delegate} - ${delegate.class}")
 }
 
-def separator = new StringBuilder(System.lineSeparator()).append('*'*80).append(System.lineSeparator()).toString()
+def separator = new StringBuilder(System.lineSeparator())
+  .append('*'*80)
+  .append(System.lineSeparator())
+  .toString()
+
 def talkAbout = {String name, Object o->
   def rints = new Random().ints().iterator()
-  def printThis = new StringBuilder('Here is some info about ').append(name).append(': ')
-                                                               .append(o.toString()).append(System.lineSeparator());
+  def printThis = new StringBuilder('Here is some info about ')
+    .append(name)
+    .append(': ')
+    .append(o.toString())
+    .append(System.lineSeparator())
 
 
-  def x= o.properties.entrySet().findAll { e ->
-    e.key.toString() != 'properties' }
-          .findAll { e ->
-            !(e.value.toString().matches(~/.*@[0-9a-f]{7,8}$/)) }
-//      .groupBy {e ->
-//          rints.next().toString()}
-          .groupBy { e ->
-            Object v = e.value;
-            Class<?> c = v?.getClass();
-            String n = c?.name;
-            String returnMe = '999999wtf'
-            switch(n){
-              case null:
-                returnMe = '000000null'; break
-              case { it.startsWith('java.lang') }: returnMe = '000005' + n; break
-              case { it.startsWith('java.util') }: returnMe = '000050' + n; break
-              case { it.endsWith('File') }: returnMe = '000500File'; break
-              case { it.startsWith('org.gradle') }: returnMe = '050000' + n; break
-              default: returnMe = '500000' + n; break
-            }
-            returnMe
-          }
-
-          .sort { e-> e.key};
+  def x = o.properties
+    .entrySet()
+    .findAll { e -> e.key.toString() != 'properties' }
+    .findAll { e -> !(e.value.toString().matches(~/.*@[0-9a-f]{7,8}$/)) }
+    .groupBy { e ->
+      Object v = e.value;
+      Class<?> c = v?.class
+      String n = c?.name
+      String returnMe = '999999wtf'
+      switch(n){
+        case null:
+          returnMe = '000000null'; break
+        case { it.startsWith('java.lang') }: returnMe = '000005' + n; break
+        case { it.startsWith('java.util') }: returnMe = '000050' + n; break
+        case { it.endsWith('File') }: returnMe = '000500File'; break
+        case { it.startsWith('org.gradle') }: returnMe = '050000' + n; break
+        default: returnMe = '500000' + n; break
+      }
+      returnMe }
+    .sort { e-> e.key }
 
 
 //              case {it instanceof String && it.endsWith('String')}-> '000001String'
@@ -210,11 +216,14 @@ def talkAbout = {String name, Object o->
     int lk = l.max{e->e.key.toString().size()}.key.toString().size()
     new StringBuilder(g.substring(6))
       .append(System.lineSeparator())
-      .append(l.collect({ Map.Entry e ->
-        String sk = e?.key?.toString() ?: ''
-        "${' '*(lk-sk.size())}${sk}: ${e?.value}" })?.join(System.lineSeparator()))
-      .toString()}
-           .join(separator);
+      .append(
+        l.collect{ Map.Entry e ->
+          String sk = e?.key?.toString() ?: ''
+          "${' '*(lk-sk.size())}${sk}: ${e?.value}" }
+        ?.join(System.lineSeparator()))
+    .toString() }
+  .join(separator)
+
   printThis.append(s)
 
   println(printThis.toString())
