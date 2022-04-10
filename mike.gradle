@@ -38,9 +38,10 @@ def depsAlways = [
   [
     'annotationProcessor', 
     'testAnnotationProcessor',
-    'implementation'
+    'implementation',
   ]:[
     'org.projectlombok:lombok:1.+',
+    'org.jetbrains:annotations:+',
   ],
   [
     'implementation',
@@ -50,7 +51,7 @@ def depsAlways = [
     'org.apache.logging.log4j:log4j-api:2.+',
     'org.apache.logging.log4j:log4j-core:2.+',
     'ch.qos.logback:logback-classic:1.2.+',
-    'com.github.tonivade:purefun:0.+'
+    'com.github.tonivade:purefun:0.+',
   ],
   [
     'testImplementation',
@@ -61,7 +62,7 @@ def depsAlways = [
     'org.junit.jupiter:junit-jupiter-params:5.+',
     'org.junit.jupiter:junit-jupiter-engine:5.+',
     'org.junit.vintage:junit-vintage-engine:5.+',
-    'org.assertj:assertj-core:3.+'
+    'org.assertj:assertj-core:3.+',
 
   ]
 ]
